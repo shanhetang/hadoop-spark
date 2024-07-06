@@ -1,0 +1,12 @@
+name: hadoop_single
+
+version: '2'
+
+services:
+  hadoop:
+    container_name: hadoop_single2
+    image: docker.io/hadoop-single2:latest
+    ports:
+      - 9870:9870
+      - 8088:8088 
+      - 19888:19888

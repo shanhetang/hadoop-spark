@@ -1,0 +1,12 @@
+# Hadoop伪分布式部署
+各个文件的表示如下：
+dockerfile_ssh：搭建一个启动ssh服务的ubuntu镜像
+dockerfile_hadoop_single：在ssh服务的基础上搭建Hadoop伪分布式镜像
+dockerfile_ssh_hadoop_single：将上面的两步合在一起
+
+ssh_entrypoint.sh：ssh的dockerfile的ENTRYPOINT脚本
+hadoop_single_entrypoint.sh：Hadoop伪分布式的ENTRYPOINT脚本
+
+config_single：需要的配置文件
+
+compose.yml：docker compose文件

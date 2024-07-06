@@ -1,0 +1,57 @@
+FROM ubuntu24-ssh:latest
+
+# 设置维护者信息
+LABEL maintainer="tangppiao@gmail.com"
+LABEL version="latest"
+LABEL description="伪分布式Hadoop镜像"
+
+USER root
+
+ENV HADOOP_HOME="/opt/hadoop"
+ENV HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop"
+ENV HADOOP_LOG_DIR="/var/log/hadoop"
+ENV PATH="$HADOOP_HOME/hadoop/sbin:$HADOOP_HOME/bin:$PATH"
+
+WORKDIR /opt
+
+# 下载JAVA和Hadoop
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk 
+
+# 这里没有设置JAVA_HOME环境变量。直接写在hadoop-env.sh 配置中，也可以添加JAVA_HOME环境变量
+# ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+# ENV PATH=$JAVA_HOME/bin:$PATH"
+
+
+# 这里可以自己下下来也可以用命令下载
+ADD hadoop-3.4.0.tar.gz /opt/
+#RUN wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz && \
+#RUN tar -xzvf hadoop-3.4.0.tar.gz  && \
+RUN mv hadoop-3.4.0 hadoop && \
+    rm -rf hadoop-3.4.0.tar.gz && \
+    mkdir /var/log/hadoop #存放log
+
+# 复制配置文件
+COPY  config_single/* /tmp/
+
+RUN mv /tmp/core-site.xml $HADOOP_CONF_DIR/core-site.xml && \
+    mv /tmp/hadoop-env.sh $HADOOP_CONF_DIR/hadoop-env.sh && \
+    mv /tmp/hdfs-site.xml $HADOOP_CONF_DIR/hdfs-site.xml 
+
+# 可执行权限，不知道可不可以删除
+RUN chmod +x $HADOOP_HOME/sbin/start-dfs.sh && \
+    chmod +x $HADOOP_HOME/sbin/start-yarn.sh 
+
+# 初始化HDFS
+RUN hdfs namenode -format
+
+# 拷贝启动脚本到容器
+COPY ./hadoop_single_entrypoint.sh /root/hadoop_single_entrypoint.sh
+RUN chmod +x /root/hadoop_single_entrypoint.sh
+
+# 使用 ENTRYPOINT 指定启动脚本
+ENTRYPOINT ["/root/hadoop_single_entrypoint.sh"]
+# 运行HDFS
+CMD [ "tail", "-f" ,"/dev/null"]
+
+
